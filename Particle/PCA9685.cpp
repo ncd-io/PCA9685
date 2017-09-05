@@ -50,15 +50,7 @@ void PCA9685::_setPWM(int reg, int on, int off){
     Wire.write(on >> 8);
     Wire.write(off);
     Wire.write(off >> 8);
-    Wire.endTransmission();
-    
-    String message = String(reg);
-    message.concat(" ");
-    message.concat(on);
-    message.concat(" ");
-    message.concat(off);
-    Particle.publish("_setPWM", message);
-    
+    Wire.endTransmission();    
 }
 
 void PCA9685::setChannel(int num, int val){
