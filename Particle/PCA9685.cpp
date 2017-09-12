@@ -9,12 +9,14 @@ void PCA9685::setAddress(int a0, int a1, int a2, int a3, int a4, int a5){
 }
 
 void PCA9685::init(){
-    Wire.begin();
+    if(!Wire.isEnabled()){
+        Wire.begin();
+    }
     reset();
 }
 
 void PCA9685::reset(){
-    write8(0,0);
+    sendCommand(PCA9685_MODE1_REGISTER, mode1);
 }
 
 void PCA9685::setPWMFreq(float freq) {
@@ -25,22 +27,14 @@ void PCA9685::setPWMFreq(float freq) {
   prescaleval -= 1;
   int prescale = prescaleval + 0.5;
   
-  Wire.beginTransmission(address);
-  Wire.write(0x00);
-  Wire.endTransmission();
-  Wire.requestFrom(address, 1);
+  int oldmode = readByte(PCA9685_MODE1_REGISTER);
+  int newmode = (oldmode & ~PCA9685_MODE1_RESTART) | PCA9685_MODE1_SLEEP;
   
-  int oldmode = Wire.read();
-  int newmode = (oldmode&0x7F) | 0x10; // sleep
-  
-  //Particle.publish("newmode", String(newmode));
-  //Particle.publish("prescale", String(prescale));
-  
-  write8(0x00, newmode);
-  write8(0xFE, prescale);
-  write8(0x00, oldmode);
+  sendCommand(PCA9685_MODE1_REGISTER, newmode);
+  sendCommand(PCA9685_PRE_SCALE, prescale);
+  sendCommand(PCA9685_MODE1_REGISTER, oldmode);
   delay(5);
-  write8(0x00, oldmode | 0xA1);
+  sendCommand(PCA9685_MODE1_REGISTER, oldmode | PCA9685_MODE1_RESTART);
 }
 
 void PCA9685::_setPWM(int reg, int on, int off){
@@ -50,38 +44,46 @@ void PCA9685::_setPWM(int reg, int on, int off){
     Wire.write(on >> 8);
     Wire.write(off);
     Wire.write(off >> 8);
-    Wire.endTransmission();    
+    Wire.endTransmission();
 }
 
 void PCA9685::setChannel(int num, int val){
     if (val == 4095) {
-      _setPWM(6+(4*num), 4096, 0);
+      _setPWM(PCA9685_LED0_ON_L+(4*num), 4096, 0);
     }
     else if (val == 0) {
-      _setPWM(6+(4*num), 0, 4096);
+      _setPWM(PCA9685_LED0_ON_L+(4*num), 0, 4096);
     }
     else {
-      _setPWM(6+(4*num), 0, val);
+      _setPWM(PCA9685_LED0_ON_L+(4*num), 0, val);
     }
 }
 
 void PCA9685::setAll(int val){
-    setChannel(61, val);
+    setChannel(PCA9685_ALL_LED_ON_L, val);
 }
 
-void PCA9685::write8(int reg, int data){
+void PCA9685::sendCommand(int reg, int cmd){
     Wire.beginTransmission(address);
     Wire.write(reg);
-    Wire.write(data);
+    Wire.write(cmd);
     Wire.endTransmission();
 }
 
-int PCA9685::readChannel(int num){
+int PCA9685::readByte(int reg){
     Wire.beginTransmission(address);
-    Wire.write(6+(4*num));
+    Wire.write(reg);
     Wire.endTransmission();
-    Wire.requestFrom(address, 2);
-    int ret = Wire.read();
-    ret = Wire.read() + (ret << 4);
-    return ret;
+    Wire.requestFrom(address, 1);
+    return Wire.read();
+}
+
+void PCA9685::readBytes(int reg, int *bytes, int length){
+    Wire.beginTransmission(address);
+    Wire.write(reg);
+    Wire.endTransmission();
+    Wire.requestFrom(address, length);
+    for(int i=0;i<length;i++){
+        bytes[i] = Wire.read();
+    }
 }
