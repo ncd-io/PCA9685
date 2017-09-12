@@ -21,16 +21,12 @@ void PCA9685::reset(){
 
 void PCA9685::setPWMFreq(float freq) {
    
-  float prescaleval = 25000000;
-  prescaleval /= 4096;
-  prescaleval /= (freq * 0.9);
-  prescaleval -= 1;
+  float prescaleval = 25000000 / 4096 / (freq * 0.9) - 1;
   int prescale = prescaleval + 0.5;
   
   int oldmode = readByte(PCA9685_MODE1_REGISTER);
-  int newmode = (oldmode & ~PCA9685_MODE1_RESTART) | PCA9685_MODE1_SLEEP;
   
-  sendCommand(PCA9685_MODE1_REGISTER, newmode);
+  sendCommand(PCA9685_MODE1_REGISTER, (oldmode & ~PCA9685_MODE1_RESTART) | PCA9685_MODE1_SLEEP);
   sendCommand(PCA9685_PRE_SCALE, prescale);
   sendCommand(PCA9685_MODE1_REGISTER, oldmode);
   delay(5);
