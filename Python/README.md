@@ -23,4 +23,24 @@ Once the library is imported and the I2C Bus created you can create a PCA9685 ob
 
 The default values for these configuration option are: {'address': 0x40, 'device_attenuation': .95}
 
-# RECHECK LIBRARY. Didn't have a .pyc so need to make sure it was properly checked
+### Publicly accessible methods
+```cpp
+set_pwm_frequency(frequency_in_hertz)
+```
+>This method sets the frequency in hertz passed to the method and tells them PWM to use that frequency.
+
+```cpp
+set_single_channel(channel, value)
+```
+>This method sets the duty cycle of a single PWM. value is a 12 bit value from 0 to 4095.
+
+```cpp
+read_single_channel(channel)
+```
+>This method reads the duty cycle of a single PWM.
+
+```cpp
+set_all_channels(value)
+```
+>This method sets the duty cycle of a all PWMs on the board. value is a 12 bit value from 0 to 4095.
+
