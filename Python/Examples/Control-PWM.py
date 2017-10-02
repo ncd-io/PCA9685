@@ -2,13 +2,14 @@
 import smbus
 #import the chip library
 import pca9685
+import time
 
 # Get I2C bus, this is I2C Bus 1
 bus = smbus.SMBus(1)
 #kwargs is a Python set that contains the address of your device as well as a device attenuation value.
 #according to our instrumentation a value of .95 will give you the most accurate results.
 #If you are running into issues with your pwm frequency being incorrect you can change this number to zero in on a per board/chip basis
-#The default address for this chip is 0x40, this simply allows you to manually set it for multi-board chains. 
+#The default address for this chip is 0x40, this simply allows you to manually set it for multi-board chains.
 kwargs = {'address': 0x40, 'device_attenuation': .95}
 #create the PCA9685 object from the PCA9685 library and pass it the kwargs and com bus.
 #the object requires that you pass it the bus object so that it can communicate and share the bus with other chips/boards if necessary
